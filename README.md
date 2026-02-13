@@ -1,99 +1,74 @@
+# Plantilla Docker: Node.js 22 + pnpm + Nginx (WSL Optimized)
 
-# Plantilla Docker: Node.js 22 + pnpm + tsx (WSL Optimized)
+Esta plantilla proporciona un entorno de desarrollo profesional diseñado para **WSL2**. Utiliza **Nginx** como proxy inverso para proteger el contenedor de Node y **tsx** para ejecutar TypeScript en tiempo real con recarga automática infalible.
 
-Esta plantilla está diseñada específicamente para desarrollar con **Node.js 22** dentro de **WSL**, evitando los problemas comunes de permisos de archivos y manteniendo el sistema host limpio mediante el uso de Docker y **pnpm**.
-
-## Estructura del Proyecto
+## 📂 Estructura del Proyecto
 
 ```text
 .
-├── api/                # Código fuente y configuración de Node.js
-│   ├── src/app.ts      # Punto de entrada
-│   └── package.json    # Dependencias y scripts
+├── api/                # Microservicio Node.js (Express + TS)
+│   ├── src/app.ts      # Punto de entrada de la aplicación
+│   └── package.json    # Scripts y dependencias
 ├── nginx/
-│   └── default.conf    # Configuración del Proxy Inverso
-├── docker-compose.yml  # Orquestación de contenedores
-├── Dockerfile          # Definición de la imagen de Node
-├── entrypoint.sh       # Script de automatización y fix de permisos
-├── .env                # Variables de entorno (UID/GID)
-└── .npmrc              # Configuración de pnpm
+│   └── default.conf    # Configuración del Proxy (Puerto 80 -> 3000)
+├── docker-compose.yml  # Orquestación de servicios
+├── Dockerfile          # Definición de imagen (Node 22 + jq)
+├── entrypoint.sh       # Script de automatización y corrección de permisos
+├── .env                # Variables de entorno (UID/GID del host)
+└── .npmrc              # Configuración de pnpm (hoisted)
 
 ```
 
 ---
 
-## Requisitos Previos
+## 🚀 Inicio Rápido
 
-1. **WSL2** instalado.
-2. **Docker Desktop** configurado para usar el motor de WSL2.
-3. Tener un archivo `.env` en la raíz con tu ID de usuario para evitar problemas de `root`:
-
+1. **Sincronizar permisos de usuario:**
+Para evitar que Docker cree archivos como `root` en tu sistema, sincroniza tu UID/GID:
 ```bash
-# Ejecuta esto en tu terminal de WSL para crearlo automáticamente
-echo "UID=$(id -u)\nGID=$(id -g)" > .env
+echo -e "UID=$(id -u)\nGID=$(id -g)" > .env
 
 ```
 
----
 
-## Cómo empezar (Quick Start)
-
-1. **Levantar el entorno:**
+2. **Levantar el entorno:**
 ```bash
 docker compose up --build
 
 ```
 
 
-*El script `entrypoint.sh` se encargará automáticamente de inicializar el `package.json`, instalar `tsx`, `typescript` y configurar los permisos de `node_modules`.*
-2. **Acceso:**
-* **API (vía Nginx):** `http://localhost` (Puerto 80)
-* **API (Directo):** `http://localhost:3000`
-
-
-3. **Scripts incluidos:**
-* `pnpm dev`: Arranca la app con `tsx watch` (recarga automática).
-* `pnpm build`: Compila el proyecto usando `tsc`.
-
-
+*El sistema inicializará automáticamente el `package.json`, instalará dependencias y configurará el servidor Express si no existe.*
+3. **Verificación:**
+Accede a `http://localhost/`. La respuesta JSON confirmará la conexión a través de Nginx (`"via_nginx": "Sí"`).
 
 ---
 
-## Comandos Útiles
+## 🛡️ Arquitectura y Seguridad
 
-### Instalar nuevas librerías
+* **Acceso Único:** Node.js está aislado en la red interna de Docker. Solo es accesible a través de Nginx en el puerto 80.
+* **Headers de Identidad:** Nginx está configurado para inyectar la IP real y el Host del cliente en las peticiones hacia Node:
+* `X-Real-IP`
+* `X-Forwarded-For`
+* `X-Forwarded-Host`
 
-No las instales en tu terminal local. Usa el contenedor para que se registren correctamente:
 
-```bash
-docker compose exec app pnpm add <paquete>
-
-```
-
-### Limpieza Total
-
-Si necesitas resetear los `node_modules` o los volúmenes corruptos:
-
-```bash
-docker compose down -v
-
-```
-
-### Problemas de Permisos (EACCES)
-
-Si ves errores de permisos en la carpeta `api/` o `node_modules/`, ejecuta:
-
-```bash
-sudo chown -R $USER:$USER api/
-
-```
+* **Fix de Permisos:** `entrypoint.sh` ejecuta un `chown` recursivo sobre `node_modules` en cada arranque, eliminando los errores de `EACCES` típicos de WSL.
 
 ---
 
-## Notas de Configuración
+## 🛠️ Comandos de Desarrollo
 
-* **pnpm:** Configurado con `node-linker=hoisted` en `.npmrc` para máxima compatibilidad con volúmenes Docker.
-* **tsx:** Utilizado para ejecutar TypeScript directamente en desarrollo sin pasos de compilación intermedios, ofreciendo una velocidad superior a `ts-node-dev`.
-* **Nginx:** Actúa como puerta de enlace, permitiendo que la app de Node escale o cambie de puerto internamente sin afectar la URL externa.
+| Acción | Comando |
+| --- | --- |
+| **Instalar Dependencias** | `docker compose exec app pnpm add <paquete>` |
+| **Ver Logs en tiempo real** | `docker compose logs -f` |
+| **Reiniciar la API** | `docker compose restart app` |
+| **Limpieza de Volúmenes** | `docker compose down -v` |
 
 ---
+
+## 📝 Notas de Configuración
+
+* **pnpm:** Usa `node-linker=hoisted` para asegurar que las dependencias sean visibles correctamente dentro del volumen de Docker.
+* **tsx:** Ejecución directa de TypeScript sin compilación previa, optimizada para el sistema de archivos de WSL mediante `CHOKIDAR_USEPOLLING=true`.
