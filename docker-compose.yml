@@ -1,0 +1,10 @@
+services:
+    app:
+        build: .
+        container_name: node-api
+        # Quitamos la línea 'user:' de aquí para que inicie como root
+        volumes:
+            - ./api:/app/api
+            - /app/api/node_modules # Este es el que suele dar error de permisos
+        environment:
+            - CHOKIDAR_USEPOLLING=true
