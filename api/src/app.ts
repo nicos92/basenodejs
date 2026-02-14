@@ -1,23 +1,22 @@
 import express, { Request, Response } from "express";
+import { envs } from "./config";
+import { GithubController } from "./presentation/github/controller";
+import morgan from "morgan";
 
-const app = express();
-const port = 3000;
+(async () => {
+    await main();
+})();
 
-app.use(express.json());
-
-app.get("/", (req: Request, res: Response) => {
-    res.json({
-        message: "¡Hola desde Express en Docker!",
-        timestamp: new Date().toISOString(),
-        // Esto confirmará si estás pasando por Nginx o no
-        via_nginx: req.headers["x-forwarded-host"] ? "Sí" : "No",
-        client_info: {
-            ip: req.headers["x-forwarded-for"] || req.socket.remoteAddress,
-            userAgent: req.headers["user-agent"],
-        },
+async function main() {
+    const app = express();
+    const PORT = envs.PORT ?? 30000;
+    const githubController = new GithubController();
+    app.use(morgan("combined"));
+    app.post("/api/github", githubController.webHookHandler);
+    app.listen(3000, () => {
+        console.log(
+            `🚀 la app esta corriendo fuerte en el contenedor http://localhost:${PORT} \n`,
+            `Para ingresar de afuera solo http://localhost`,
+        );
     });
-});
-
-app.listen(port, () => {
-    console.log(`🚀 Servidor corriendo en http://localhost:${port}`);
-});
+}

@@ -8,9 +8,7 @@
         // See also https://aka.ms/tsconfig/module
         "module": "commonjs",
         "target": "esnext",
-        "types": [
-            "express"
-        ],
+        "types": ["express"],
         // For nodejs:
         // "lib": ["esnext"],
         // "types": ["node"],
@@ -42,14 +40,9 @@
         // Adicionales para Linux/WSL
         "moduleResolution": "node", // Importante para Linux
         "allowSyntheticDefaultImports": true,
-        "resolveJsonModule": true,
+        "resolveJsonModule": true
     },
     // IMPORTANTE: Incluir explícitamente los archivos
-    "include": [
-        "src/**/*"
-    ],
-    "exclude": [
-        "node_modules",
-        "dist"
-    ]
+    "include": ["src/**/*"],
+    "exclude": ["node_modules", "dist"]
 }
