@@ -12,6 +12,7 @@ async function main() {
     const PORT = envs.PORT ?? 30000;
     const githubController = new GithubController();
     app.use(morgan("combined"));
+    app.use(express.json());
     app.post("/api/github", githubController.webHookHandler);
     app.listen(3000, () => {
         console.log(
