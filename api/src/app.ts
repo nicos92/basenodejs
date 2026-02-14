@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import { envs } from "./config";
 import { GithubController } from "./presentation/github/controller";
 import morgan from "morgan";
+import { GithubService } from "./presentation/services/github.service";
 
 (async () => {
     await main();
@@ -10,8 +11,9 @@ import morgan from "morgan";
 async function main() {
     const app = express();
     const PORT = envs.PORT ?? 30000;
-    const githubController = new GithubController();
-    app.use(morgan("combined"));
+    const githubService = new GithubService();
+    const githubController = new GithubController(githubService);
+    app.use(morgan("common"));
     app.use(express.json());
     app.post("/api/github", githubController.webHookHandler);
     app.listen(3000, () => {
