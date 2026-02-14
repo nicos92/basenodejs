@@ -38,6 +38,18 @@
         "noUncheckedSideEffectImports": true,
         "moduleDetection": "force",
         "skipLibCheck": true,
-        "esModuleInterop": true
-    }
+        "esModuleInterop": true,
+        // Adicionales para Linux/WSL
+        "moduleResolution": "node", // Importante para Linux
+        "allowSyntheticDefaultImports": true,
+        "resolveJsonModule": true,
+    },
+    // IMPORTANTE: Incluir explícitamente los archivos
+    "include": [
+        "src/**/*"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist"
+    ]
 }
