@@ -4,6 +4,7 @@ import { GithubController } from "./presentation/github/controller";
 import morgan from "morgan";
 import { GithubService } from "./presentation/services/github.service";
 import { DiscordService } from "./presentation/services/discord.service";
+import { GithubSha256Middleware } from "./presentation/middlewares/githubsha256.middleware";
 
 (async () => {
   await main();
@@ -17,6 +18,7 @@ async function main() {
   const githubController = new GithubController(githubService, discordService);
   app.use(morgan("common"));
   app.use(express.json());
+  app.use(GithubSha256Middleware.verifyGithubSignature)
   app.post("/api/github", githubController.webHookHandler);
   app.listen(3000, () => {
     console.log(
